@@ -98,6 +98,75 @@ order by CUST_ID;
 > **結論**
 如果使用有 Index 且 not nullable 的欄位 Order By，花費的成本較低。
 
+## Case 6 - Correlation Subquery
+如果查詢條件包括子查詢，那麼下面的 EMPLOYEE 表格在查詢的時候，每一行都會執行一次子查詢。
+
+```sql
+SELECT DEPARTMENT_ID, last_name, salary 
+FROM employees e1 
+WHERE salary > (SELECT AVG(salary) 
+                FROM employees e2
+                WHERE e1.DEPARTMENT_ID = e2.DEPARTMENT_ID
+                GROUP BY e2.DEPARTMENT_ID) 
+ORDER BY DEPARTMENT_ID
+```
+
+將子查詢的部分改為以 `Join` 的方式可以減少操作的次數。
+```sql
+SELECT employee_id, last_name, salary
+FROM employees e1
+          , (SELECT avg(salary) avg_sal, DEPARTMENT_ID
+             FROM employees
+             GROUP BY DEPARTMENT_ID) a
+WHERE e1.salary > a.avg_sal
+AND e1.DEPARTMENT_ID = a.DEPARTMENT_ID
+```
+
+不過目前的 Oracle 遇到子查詢，operator 會自動轉為 `Join` 執行。
+
+## Case 7 - Union & Union All
+無論是否存在索引，`Union` 運算子會對查詢結果無條件的進行排序，並篩選出不重複的結果，如果要使用 `Union`，可以依照需求建立欄位的索引。
+
+但使用用 `Union All` 運算子十，operator 不會對查詢結果進行篩選和排序，有可能導致結果與預期的不相符。
+```sql
+select count(*)
+from (
+select *
+  from CUSTOMERS
+ where CUST_FIRST_NAME = 'Max'
+union 
+select *
+  from CUSTOMERS
+ where CUST_LAST_NAME = 'Colven'); -> 127 rows
+ 
+select count(*)
+from (
+select *
+  from CUSTOMERS
+ where CUST_FIRST_NAME = 'Max'
+union all
+select *
+  from CUSTOMERS
+ where CUST_LAST_NAME = 'Colven'); -> 143 rows
+```
+
+## Case 8 - 避免使用 HAVING 運算子
+從執行計畫上來看，使用 `Having` 運算子的執行計畫並沒有使用到索引，因為 `Having` 的執行順序在 `Group By` 之後，且 `Having` 運算子後通常會搭配函式如 `COUNT`、`SUM`、`MAX`、`MIN` 或是 `AVG`。
+```sql
+select CUST_ID, avg(CUST_CREDIT_LIMIT)
+ from CUSTOMERS
+ group by CUST_CITY
+ having CUST_CITY = 'paris';
+```
+
+改為使用等號或是才有機會用到索引。
+```sql
+select CUST_ID, avg(CUST_CREDIT_LIMIT)
+ from CUSTOMERS
+ group by CUST_CITY
+ having CUST_CITY = 'paris';
+```
+
 ## Case - 複合 PK 索引欄位的順序
 
 
