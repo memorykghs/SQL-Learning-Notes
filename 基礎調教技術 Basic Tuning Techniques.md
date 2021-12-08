@@ -167,6 +167,12 @@ select CUST_ID, avg(CUST_CREDIT_LIMIT)
  having CUST_CITY = 'paris';
 ```
 
+## Case 9 - Like '%String'
+當使用 `Like` 搭配 `%` 查詢，執行計畫可能不會使用索引。
+```sql
+select PROGRAM_ID from STUDENT.TEST where 
+```
+
 ## Case - 複合 PK 索引欄位的順序
 
 

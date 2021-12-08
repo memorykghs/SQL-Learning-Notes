@@ -23,10 +23,15 @@ SQL 語句可以通過多種不同的方式執行，包括以下幾種：
 
 * INDEX SACN：透過 `INDEX` 找到某些 rows 的 `ROWID`，然後讀取 `ROWID` 所指向的 table blocks。
   * INDEX UNIQUE SCAN 索引唯一掃描
-  * INDEX UNIQUE SCAN 索引範圍掃描
+  * INDEX RANGE SCAN 索引範圍掃描
   * INDEX FULL SCAN 索引全掃描
   * INDEX FAST FULL SCAN 索引快速掃描
   * INDEX SKIP SCAN 索引跳躍掃描
+  * INDEX JOIN SCAN 
+  * Using Bitmap Index
+  * Combining Bitmap Index
+<br/>
+
 * Nested loops
 * Hash joins
 
