@@ -46,6 +46,11 @@
 
 ### Index Unique Scan
 * 存在唯一索引的情況下，存取資料時會使用 Index Unique Scan。
+* 搜尋到目標所在的 block 後停止搜索。
+
+### Idex Range Scan
+* 在唯一索引上使用運算符 ( 如：>、<、<> 等等 ) 或是對非唯一索引上的資料進行查詢。
+* 跟 Index Uniques Scan 不同的地方是會一直搜索直到條件不滿足才停止。
 
 ### 
 
