@@ -15,25 +15,23 @@ SQL 的處理包含了以下幾個主要的組件：
 ## Overview of the Optimizer
 Optimizer 可以接收統計資料並分析後，決定使用哪一個最有效率的方法執行 SQL。在 SQL 執行的過程中，這是影響執行效率很重要的一個步驟。
 
-SQL 語句可以通過多種不同的方式執行，包括以下幾種：
-* TABLE ACCESS
-  * FULL TABLE SCAN 全表掃描
-  * TABLE ACCESS BY INDEX ROWID 索引掃描
-<br/>
+## Explain Plan
 
-* INDEX SACN：透過 `INDEX` 找到某些 rows 的 `ROWID`，然後讀取 `ROWID` 所指向的 table blocks。
-  * INDEX UNIQUE SCAN 索引唯一掃描
-  * INDEX RANGE SCAN 索引範圍掃描
-  * INDEX FULL SCAN 索引全掃描
-  * INDEX FAST FULL SCAN 索引快速掃描
-  * INDEX SKIP SCAN 索引跳躍掃描
-  * INDEX JOIN SCAN 
-  * Using Bitmap Index
-  * Combining Bitmap Index
-<br/>
+### 分析執行計畫 ( Execution Plans )
+* 檢查數據訪問路徑，例如全表掃描、索引全掃描和索引快速全掃描掃描。
+* 檢查連接順序和連接類型，例如嵌套循環連接、散列連接和排序合併加入。
+* 查看返回的實際行數和估計行數通過查詢。
+* 尋找實際和估計之間存在較大差異的計劃步驟行。
+* 尋找成本和邏輯讀取顯著不同的計劃步驟。
 
-* Nested loops
-* Hash joins
+## 說明計畫簡介
+* 執行一段 SQL 語句之前，Oracle 會將這些語法拆成一個一個步驟進行成本分析。
+* 每個步驟都會返回相對應的 Row Source ，也就是執行後符合條件的 rows 集合。
+* 而這些步驟可以被轉成樹狀圖，一個步驟會是一個 node，根據這些 node 順序可以得知 SQL 執行步驟的先後順序。
+
+###### 參考
+* http://blog.itpub.net/14887683/viewspace-1010813/
+
 
 ## SQL Tune on 執行階段
 ```
