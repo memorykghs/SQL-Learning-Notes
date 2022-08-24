@@ -11,6 +11,7 @@ Set up Employees table
 
 What is RID lookup in sql server execution plans
 What is key lookup in sql server execution plans
+  * Create clusterd index on Id column
 
 ## Set up Employees table
 同樣使用 `Employees` table 作為範例。
@@ -121,3 +122,53 @@ Select Name from Employees where Name='ABC 932000'
 * 原因是因為我們這次查詢的目的只有 `Name` 欄位，不需要同一筆資料的其他值，自然也就不用 RID lookup operation
 
 ## What is key lookup in sql server execution plans
+
+如果 table 上沒有 clustered index，無法保證資料以任何特定順序存儲，但是如果我們創建 clustered index ( 例如在 `EmployeeId` 上 )，則表中的資料在物理上是按 `EmployeeId` 的順序儲存。我們放大檢視 tree structure 底部的 leaf node，可以看到資料是按 `EmployeeId` 列排序。
+
+![](/images/sql-opt/4-9.jpg)
+
+#### Create clusterd index on Id column
+```sql
+Create clustered index IX_Employees_Id on Employees(Id)
+```
+
+再次執行以下 SQL，可以發現使用了 Key Lookup 而不是 RID lookup。
+
+```sql
+Select * from Employees where Name = 'ABC 932000'
+```
+
+![](/images/sql-opt/4-10.png)
+
+為什麼呢?
+
+因為現在 `Employees` 表上同時有 clustered index 與 non-clustered indexs，所以在實體上資料是有序地被保存的。當查詢條件使用 non-clustered index 進行查詢，在該樹狀結構的 leaf node 中，除了 `Name` 欄位的值，另外還包含了 clustered index `EmployeeId` 的 pointer，SQL Server 透過 `Name` 欄位查到資訊後，可以再使用 clustered index 快速的找到該筆資料。這時候用的就是 Key Lookup 了。
+
+![](/images/sql-opt/4-11.jpg)
+
+再換一個 SQL 執行。
+
+```sql
+Select Id, Name from Employees where Name = 'ABC 932000'
+```
+
+這次我們在 SELECT 後面多加了 `Id` 欄位。在 execution plan 中可以發現這次我們就沒有使用 Key Lookup 了，原因是因為 `Id` 與 `Name` 欄位在 SELECT SQL 都已經被查詢出來了，所以也帶有 row locators。
+
+![](/images/sql-opt/4-12.png)
+
+## What is better for performance - Key lookup or RID lookup
+
+Key Lookup 和 RID Lookup 的 `Estimated Subtree Cost` 都是一樣的 0.0065704。
+
+![](/images/sql-opt/4-12.png)
+
+所以哪一個效能比較好，其實要根據以下的條件：
+
+* SQL 的語法主要要做什麼
+  What the query is trying to do
+
+* 有加上 index 的欄位以及 SELECT 出來的 list 是否包含這個欄位
+  The columns you have in the index and the select list of your query
+
+* 資料的分布
+  Data distribution
