@@ -9,7 +9,9 @@
 Clustered Index Structure
   * Script to create Employees table
 
+Clustered Index Scan
 Non-Clustered Index in SQL Server
+  * Non-clustered and clustered index in action
 
 ## Clustered Index Structure
 如同前一章提到的，SQL Server 預設會以 clustered key 的結構去儲存資料。
