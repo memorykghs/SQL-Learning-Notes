@@ -36,6 +36,8 @@ table data 在 SQL Server 中以樹狀的結構被儲存。
 * 在預設的情況下會在 `EmployeeId` column 上建立 clustered index
 * 代表資料實際儲存在硬體中會依照 `EmployeeId` 進行排序
 
+> 也就是說如果一開始沒有建立 index，等資料表龐大到一定程度才建，資料庫需要一些時間來處理這些資料???
+
 #### Where is the data actually stored
 如同上面提到的，資料會被儲存在樹狀結構中的一系列的 data pages 裏面，這種樹狀結構稱為 B-Tree。
 
